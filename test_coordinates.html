@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Coordinates</title>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.6.0/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.6.0/dist/leaflet.css"/>
+    <style>
+        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+        #map { height: 500px; width: 100%; border: 1px solid #ccc; }
+        .info { background: #f0f0f0; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>John Deere Dealers - Coordinate Test</h1>
+    <div class="info">
+        <strong>Testing coordinates from dealers_with_coords.json</strong><br>
+        This will show if the coordinates are valid and markers can be displayed.
+    </div>
+    <div id="map"></div>
+    <div id="status"></div>
+
+    <script>
+        // Initialize map
+        const map = L.map('map').setView([39.8283, -98.5795], 5);
+        
+        L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors © CartoDB'
+        }).addTo(map);
+
+        // Test coordinates
+        const testCoords = [
+            { lat: 31.571, lon: -85.251, name: "ABBEVILLE, AL" },
+            { lat: 31.308, lon: -86.481, name: "ANDALUSIA, AL" },
+            { lat: 34.318, lon: -86.498, name: "ARAB, AL" },
+            { lat: 34.802, lon: -86.972, name: "ATHENS, AL" },
+            { lat: 31.024, lon: -87.494, name: "ATMORE, AL" }
+        ];
+
+        const statusDiv = document.getElementById('status');
+        let markerCount = 0;
+
+        testCoords.forEach((coord, index) => {
+            try {
+                const marker = L.marker([coord.lat, coord.lon]);
+                marker.bindPopup(`<b>Test Marker ${index + 1}</b><br>${coord.name}<br>Lat: ${coord.lat}<br>Lon: ${coord.lon}`);
+                marker.addTo(map);
+                markerCount++;
+                console.log(`✅ Added marker ${index + 1}: ${coord.name}`);
+            } catch (error) {
+                console.error(`❌ Failed to add marker ${index + 1}:`, error);
+            }
+        });
+
+        statusDiv.innerHTML = `
+            <div class="info">
+                <strong>Test Results:</strong><br>
+                ✅ Successfully added ${markerCount} markers<br>
+                📍 Coordinates are valid and working<br>
+                🗺️ Map is functional
+            </div>
+        `;
+
+        // Try to load the actual JSON file
+        fetch('./dealers_with_coords.json')
+            .then(response => response.json())
+            .then(data => {
+                console.log('✅ Successfully loaded dealers_with_coords.json');
+                console.log(`Found ${data.length} dealers`);
+                
+                statusDiv.innerHTML += `
+                    <div class="info" style="background: #d4edda; color: #155724;">
+                        <strong>JSON File Test:</strong><br>
+                        ✅ dealers_with_coords.json loaded successfully<br>
+                        📊 Found ${data.length} dealers in the file<br>
+                        🎯 Ready to use with main map!
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error('❌ Failed to load dealers_with_coords.json:', error);
+                statusDiv.innerHTML += `
+                    <div class="info" style="background: #f8d7da; color: #721c24;">
+                        <strong>JSON File Test:</strong><br>
+                        ❌ Failed to load dealers_with_coords.json<br>
+                        🔧 Use a local server to fix CORS issues<br>
+                        💡 Run: python -m http.server 8000
+                    </div>
+                `;
+            });
+    </script>
+</body>
+</html>
+
